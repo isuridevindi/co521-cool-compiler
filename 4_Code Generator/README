@@ -1,0 +1,596 @@
+README file for Programming Assignment 5  (C++ edition)
+=======================================================
+
+Your directory should now contain the following files:
+
+ Makefile
+ README
+ ast-lex.cc	      -> [cool root]/src/PA5/ast-lex.cc
+ ast-parse.cc	      -> [cool root]/src/PA5/ast-parse.cc
+ cgen-phase.cc	      -> [cool root]/src/PA5/cgen-phase.cc
+ cgen.cc
+ cgen.h
+ cgen_supp.cc
+ cool-tree.cc	      -> [cool root]/src/PA5/cool-tree.cc
+ cool-tree.handcode.h
+ dumptype.cc	      -> [cool root]/src/PA5/dumptype.cc
+ emit.h
+ example.cl
+ handle_flags.cc      -> [cool root]/src/PA5/handle_flags.cc
+ mycoolc	      -> [cool root]/src/PA5/mycoolc*
+ stringtab.cc	      -> [cool root]/src/PA5/stringtab.cc
+ tree.cc	      -> [cool root]/src/PA5/tree.cc
+ utilities.cc	      -> [cool root]/src/PA5/utilities.cc
+ *.d
+
+The include (.h) files for this assignment can be found in 
+[cool root]/include/PA5
+
+	The Makefile contains targets for compiling and running your
+	program, as well as handing it in. DO NOT MODIFY.
+
+	The README contains this info. Part of the assignment is to
+	fill the README with the write-up for your project. You should
+	explain design decisions, explain why your code is correct,
+	and why your test cases are adequate. It is part of the
+	assignment to clearly and concisely explain things in text as
+	well as to comment your code. Just edit this file.
+
+	In example.cl you should write a correct Cool program which
+	tests as many aspects of the code generator as possible. It
+	should pass your code generator, and running spim on the
+	generated output should run the program correctly.
+
+	cgen.cc is the skeleton file for the code generator. This
+	skeleton is much larger than the ones for previous
+	assignments.  The skeleton provides three components of the
+	code generator:
+
+		- functions to build the inheritance graph; (we supply
+		  this in case you didn't get this working for PA4)
+
+		- functions to emit global data and constants;
+		 
+		- functions to emit spim instructions; (we supply
+		  these last two to save you some tedious coding)
+
+	You should work to understand this code, and it will help you
+        write the rest of the code generator.
+
+	cgen.h is the header file for the code generator. Feel free to
+	add anything you need.
+
+	cgen_supp.cc is general support code for the code generator.
+	You can add functions as you see fit, but do not modify the 3
+	functions:
+
+		o byte_mode
+		o ascii_mode
+		o emit_string_constant
+
+	emit.h defines a bunch of macros which should come in handy
+	when you actually want to emit code. Feel free to change
+	anything here to suit your needs.
+
+        cgen-phase.cc supplies the driver for the compiler. You should
+        not modify this code.  The script mycoolc can pass any of the
+        standard flags to the code generator; for this assignment, -c
+        (code generator debug) may be useful as it sets a global
+        variable cgen_debug to true (1).  If you want your code
+        generator to print debug information when the option is set,
+        write your debug code in the following format:
+
+	      if (cgen_debug)
+	      {
+		...
+	      }
+
+	symtab.h contains a symbol table implementation. You may
+        modify this file if you'd like.  To do so, remove the link and
+        copy `[course dir]/include/PA5/symtab.h' to your local
+        directory.
+
+	cool.h contains definitions that are used by almost all parts
+	of the compiler. DO NOT MODIFY.
+
+        tree.h contains the base class `tree_node' of the AST nodes.
+
+        cool-tree.cc, cool-tree.h, and cool-tree.handcode.h contain
+        the declarations and definitions of code generation AST nodes.
+        You may add fields as you wish, but you shouldn't modify any
+        of the methods already there except `code', which you may
+        modify or remove as you wish.  Note that cool-tree.handcode.h
+        is different from the same file in PA4---this file contains
+        function definitions needed for the cgen.cc skeleton.  You may
+        modify cool-tree.h or cool-tree.handcode.h, but don't modify
+        cool-tree.cc.  Place all method definitions in cgen.cc
+
+	stringtab.h contains functions to manipulate the string table.
+	DO NOT MODIFY.
+
+	dumptype.cc contains functions for printing out an abstract
+	syntax tree.  DO NOT MODIFY.
+
+        *.d dependency files, generated automatically by the makefile.
+
+Instructions
+------------
+
+	To compile your compiler and code generator type:
+
+	% gmake cgen
+
+	To test your compiler, type:
+
+	% ./mycoolc [-o output filename] <file1.cl> <file2.cl> ...
+
+	This command parses all the cool files given on the command
+	line, passes them through the semantic checker, and then hands
+	the program AST to your code generator.
+
+	To run your compiler on the file example.cl, type:
+
+	% gmake dotest
+
+	To run the produced code:
+
+	% [cool root]/bin/spim -file file1.s
+      /* or the output filename you chose */
+	
+	If you change architectures you must issue
+
+	% gmake clean
+
+	when you switch from one type of machine to the other.  If at
+	some point you get weird errors from the linker, you probably
+	forgot this step.
+
+	GOOD LUCK!
+
+---8<------8<------8<------8<---cut here---8<------8<------8<------8<---
+
+Write-up for PA5
+
+----------------------------
+ GROUP 04
+ E/17/058 : DEVINDI G.A.I
+ E/17/190 : LIYANAGE S.N
+----------------------------
+
+
+============================
+Modifications 
+============================
+
+Modified files
+	- cgen.cc
+	- cgen.h
+	- cool-tree.h
+	- cool-tree.handcode.h
+	- Makefile
+	
+* cgen.cc 
+	contains code for the code generator and
+	functions for emitting MIPS instructions
+
+* cgen.h
+	method declarations to emit code
+	add new class Environment
+	
+* cool-tree.h
+	add method declarations to the classes
+	- method_class 		(line 194 to 202)
+		IsMethod()
+		code(ostream& stream, CgenNode* class_node)
+		GetArgNum()
+	- static_dispatch_class (line 320 to 326)
+		GetActuals()
+	- dispatch_class	(line 350 to 356)
+		GetActuals()
+	- typcase_class 	(line 424 to 430)
+		GetCases() 
+			
+* cool-tree.handcode.h
+	add class Environment
+	
+* Makefile
+	C++11 features are used
+	add "-std=c++11" to CFLAG
+
+
+
+========================
+Code Generation
+========================
+
+start cgen (line 148)
+initialize predefined symbol (line 154)
+start emit codes (line 160)
+
+order of generating codes : (line 1256 to 1295)
+	- coding global data 
+	- choosing gc
+	- coding constants
+	- coding prototype objects
+	- coding name table
+	- coding dispatch tables
+	- coding object table
+	- coding global text
+	- coding object initializers
+	- coding class methods
+	
+
+
+	
+1. Determine and emit code for global constants 
+===============================================
+
+* code_global_data (line 684 to 724)
+	
+	- start data segment (line 690)
+	  align the next datum on a 2^2 byte boundary
+	
+		.data 
+		.align 2  
+
+	- define global names (line 694 to 712)
+	
+		.globl	class_nameTab (global class table)
+		.globl	Main_protObj (main protype object)
+		.globl	Int_protObj 
+		.globl	String_protObj
+		.globl	bool_const0
+		.globl	bool_const1
+		.globl	_int_tag
+		.globl	_bool_tag
+		.globl	_string_tag
+	
+	- define tag for Int, String, and Bool (line 718 to 723)
+
+		_int_tag:
+			.word	2
+		_bool_tag:
+			.word	3
+		_string_tag:
+			.word	4
+			
+* Generate GC choice constants (line 759 to 769)
+		
+* Emit codes for constants (line 786 to 793)
+	
+	meta data for string constant, int constants and boolena constants
+	are emited as "_const:". the object layout is given in the cool-runtime
+	system. class tag, object size and dispatch information are added 
+	to the constant labels as data. 
+	
+	- Emit string constants (line 585 to 589)
+		Generate a string object definition for every string
+		constant in the stringtable (line 555 to 579)
+		
+		Add string length to the int table
+		string length is saved as a int constant
+		The object size is calculated by adding DEFAULT_OBJFIELDS(3) 
+		and STRING_SLOTS(1) to (string_len + 4) / 4
+		
+		The code emits as following structure
+		
+			str_constx:
+				.word	class tag (4)
+				.word	object size
+				.word	String_dispTab
+				.word	string length (int constant)
+				.ascii	string constant
+				.byte	0	
+				.align	2		
+		
+		
+	
+	- Emit int constants (line 624 to 628)
+		Generate an Int object definition for every Int constant
+		in the inttable. (line 602 to 618)
+		
+		The code emits as following structure
+		
+			int_constx:
+				.word	class tag (2)
+				.word	object size (4)
+				.word	Int_dispTab
+				.word	integer value
+				
+		
+		
+	- Emit boolean constant (line 647 to 662)
+		Since there are only two Bool values,
+		there is no table for boolean.
+			
+		The code emits as following structure
+		
+			bool_const0:
+				.word	class tag (3)
+				.word	object size (4)
+				.word	Bool_dispTab
+				.word	0
+				
+			bool_const1:
+				.word	class tag (3)
+				.word	object size (4)
+				.word	Bool_dispTab
+				.word	1
+	
+			
+
+2. Determine and emit code for global tables 
+============================================
+
+
+* coding name table (line 796 to 813)
+	
+	Only global labels are visible outside of a file
+	For every class in class table, emit class label in
+	class_nameTab to access them globally.
+	 
+	class_nameTab:
+		.word	str_const65
+		.word	str_const66
+		.word	str_const67
+
+
+* coding dispatch table (line 838 to 856)
+
+	The object layout describes the location of attributes, 
+	as well as the meta-data that must be associated with each object.
+	The dispatch table information is emited as specified in cool-runtime system
+
+	For every class in class node, emit class methods
+	in dispatch class table. methods are emits according
+	to the inheritance. emit <classname>.<method>
+	
+		
+		class_dispTab:
+			.word	Object.abort
+			.word	Object.type_name
+			.word	Object.copy
+			.word	parent.method
+			.word	class.method
+
+	first three methods are always same for every calss
+	these methods are added in to the runtime system by the class instalaion. 
+		
+		Object.abort - 	A procedure returning a fresh copy 
+						of the object passed in $a0 Result 
+						will be in $a0
+ 		Object.type_name - Returns the name of the class of object 
+						passed in $a0 as a string object. Uses the
+						class tag and the table class nameTab
+		Object.copy -	A procedure that prints out the 
+						class name of the object in $a0 
+						Terminates program execution
+			
+		
+
+	
+* coding object table (line 816 to 835)
+
+	For every class in class node, emit prototype object of class
+	and code that initializes an object of class
+
+		class_objTab:
+			.word	Object_protObj
+			.word	Object_init
+			.word	IO_protObj
+			.word	IO_init
+			
+	For class Object and IO their prototype objects are at the
+	labels Object_protObj and IO_protObj and their initialization 
+	methods are at Object_init and IO_init, respectively.
+	
+
+
+* coding prototype objects (line 1329 to 1373)
+
+	Generate a prototype objects definition for every Class Node
+	constant in CgenNode. for each attribute of the method, prototype 
+	code emit respective object constant.
+	
+	The code emits has following structure
+	
+		class_protObj:
+			.word	class tag
+			.word	size (DEFAULT_OBJFIELDS + attribute size)
+			.word	class_dispTab
+			.word	str_constant50
+			.word	int_constant61
+ 	
+ 	after the dispatch table information, the labels for attributes
+ 	are displayed.
+
+
+
+3. Determine and emit code for the initialization method of each class
+==================================================================	
+
+* coding global text (line 734 to 750)
+	
+	.text
+	.globl	Main_init
+	.globl	Int_init
+	.globl	String_init
+	.globl	Bool_init
+	.globl	Main.main
+	
+	
+* coding object initializers (line 1379 to 1456) 
+
+	For every class in class node, initialize code
+	
+	labeled as <classname>_init:
+		
+		- push old fp, s0, ra to the stack
+			addiu	$sp $sp -12
+			sw	$fp 12($sp)
+			sw	$s0 8($sp)
+			sw	$ra 4($sp)
+
+		- new fp points to the return addr in stack
+			addiu	$fp $sp 4
+		
+		- move accumulator value to self register
+			move	$s0 $a0
+			
+		- if parent exists jump and link to parent_init
+			jal	<parent>_init
+		
+		- for each attribute get attribute value to a0
+		  and save it to register s0 (offset = 3+ index of attribute)
+		  	la	$a0 int_const10
+			sw	$a0 offset($s0)
+
+		- move s0 register value to accumulator a0 
+			move	$a0 $s0
+
+		- pop fp, s0, ra from from stack
+			lw	$fp 12($sp)
+			lw	$s0 8($sp)
+			lw	$ra 4($sp)
+			addiu	$sp $sp 12
+
+		- jump to return address
+			jr	$ra	
+
+
+
+4. Determine and emit code for each method definition
+=====================================================
+
+* coding class methods (line 1459 to 1510)
+
+	For every class in class node, emit class methods
+	if class is not a basic class, code every method inside the class
+
+	<class>.<method>:
+		- push old fp, s0, ra to the stack
+			addiu	$sp $sp -12
+			sw	$fp 12($sp)
+			sw	$s0 8($sp)
+			sw	$ra 4($sp)
+
+		- new fp points to the return addr in stack
+			addiu	$fp $sp 4
+		
+		- evaluating expression and put it to accumulator
+		  for each formal in method add formal name to Enviroment
+		  paramter list and generate code for each expression
+		
+		- pop fp, s0, ra from stack
+			lw	$fp 12($sp)
+			lw	$s0 8($sp)
+			lw	$ra 4($sp)
+			addiu	$sp $sp 12
+
+		- pop arguments from the stack
+
+		- jump to return address
+			jr	$ra
+
+
+* coding expressions
+
+	code generated for each expression according to the rules specified
+	in the cool-manual. go to following line numbers of cgen.cc to find the
+	code generation for the expressions. the basic steps to generate code for 
+	some of the expressions are as follows
+
+	- code generation for assign (line 513 to 1551)
+		- evaluate value for expression
+		- get address of the memory location
+		- store value to memory location
+
+	- code generation for static dispatch (line 1554 to 1600)
+		- evaluate and save the params
+		- evaluate obj in dispatch
+		- run time error : if obj is void
+		- if accumulator value is not zero jump to next label
+		- else jump and link to dispatch abort
+		- locate the next method in the dispatch table
+		- jump and link register to dispatch
+	
+	- code generation for dispatch (line 1604 to 1653)
+		- evaluate and save the params
+		- evaluate obj in dispatch
+		- run time error : if obj is void
+		- if accumulator value is zero jump and link to dispatch abort
+		- else locate the method in the dispatch table
+		- jump to method location
+
+	- code generation for conditions (line 1675 to 1692)
+		- evaluate condition
+		- extract the bool content from a0 to temperory register t1
+		- if t1 == 0 goto false label (next label) and jump to finish label
+		- else generate code to hen statement and jump to finish label
+	
+	- code generation for loops (line 1696 to 1734)
+		- start label
+		- evaluate condition
+		- extract the bool content from acc to t1
+		- if accumulator value is false jump to finish
+		- if accumulator value is true code generate for loop boundary
+		- jump to start
+	
+	- .... see line 1738 to 2322
+
+
+
+============================
+Runtime Error Checking
+============================
+
+six runtime errors will terminate the program. 
+The generated code catch the first three errors:
+	- dispatch on void
+	- missing branch
+	- case on void
+
+
+* dispatch abort 
+================
+	Called when a dispatch is attempted on a void object. Prints the line
+	number, from $t1, and filename, from $a0, at which the dispatch
+	occurred, and aborts. 
+
+	handled in
+		- static dispatch  	line 1570 to 1575
+		- dispatch 		line 1623 to 1627
+
+* case abort 
+============
+	Called when a case statement has no match.
+	The class name of the object in $a0 is printed, and execution halts.
+
+	handled in 
+		- case expression	line 1830 to 1832
+
+* case abort2 
+==============
+	Called when a case is attempted on a void object. Prints the line
+	number, from $t1, and filename, from $a0, at which the error
+	occurred, and aborts.
+
+	handled in 
+		- case expression 	line 1752 to 1756
+
+
+other three errors are catched by SPIM
+	- division by zero
+	- substring out of range
+	- heap overflow
+
+
+
+===================
+Testing 
+===================
+
+compile and run all the example cool programs given in cool/examples
+folder and check the behaviour comparing to actual cool compiler 
+
+
